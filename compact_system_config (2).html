@@ -749,11 +749,12 @@ function setupInteractions(){
     }
   });
 
-  svg.addEventListener('pointerup',()=>{
+  svg.addEventListener('pointerup',(ev)=>{
     isDragging=false;
     isPanning=false;
     dragData=null;
     panData=null;
+    try{ svg.releasePointerCapture(ev.pointerId); }catch(e){}
   });
 
   // Zoom with mouse wheel
@@ -762,21 +763,39 @@ function setupInteractions(){
     const worldPos=toWorldCoords(ev);
     const scaleFactor=ev.deltaY>0?0.9:1.1;
     const newK=Math.max(ZMIN,Math.min(ZMAX,camera.k*scaleFactor));
-    
-    camera.x=ev.clientX-worldPos.x*newK;
-    camera.y=ev.clientY-worldPos.y*newK;
+    const rect = svg.getBoundingClientRect();
+    const cx = ev.clientX - rect.left;
+    const cy = ev.clientY - rect.top;
+    camera.x=cx-worldPos.x*newK;
+    camera.y=cy-worldPos.y*newK;
     camera.k=newK;
     applyCamera();
   },{passive:false});
 
   // Toolbar buttons
   document.getElementById('zoomIn').addEventListener('click',()=>{
-    camera.k=Math.min(ZMAX,camera.k*1.2);
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.width/2;
+    const cy = rect.height/2;
+    const worldX = (cx - camera.x) / camera.k;
+    const worldY = (cy - camera.y) / camera.k;
+    const newK = Math.min(ZMAX, camera.k*1.2);
+    camera.x = cx - worldX*newK;
+    camera.y = cy - worldY*newK;
+    camera.k = newK;
     applyCamera();
   });
 
   document.getElementById('zoomOut').addEventListener('click',()=>{
-    camera.k=Math.max(ZMIN,camera.k/1.2);
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.width/2;
+    const cy = rect.height/2;
+    const worldX = (cx - camera.x) / camera.k;
+    const worldY = (cy - camera.y) / camera.k;
+    const newK = Math.max(ZMIN, camera.k/1.2);
+    camera.x = cx - worldX*newK;
+    camera.y = cy - worldY*newK;
+    camera.k = newK;
     applyCamera();
   });
 
