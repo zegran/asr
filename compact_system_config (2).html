@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AWR Prototype — Online Sizing Tool</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --grid-1: rgba(255,255,255,0.06);
+      --grid-2: rgba(255,255,255,0.03);
+      --text: #e8ecff;
+      --muted: #a8b0d9;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {margin:0; padding:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui; height:100vh; overflow:hidden;}
+    .container {display:flex; height:100vh;}
+    
+    /* Config Panel - Fixed Width with Responsive Compact Design */
+    .config {
+      width:500px; 
+      min-width:500px;
+      background:#11172e; 
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      overflow: hidden;
+    }
+    
+    .config-header {
+      padding: 16px 20px 12px;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      position: relative;
+      flex-shrink: 0;
+    }
+    
+    .config-header h2 {
+      margin:0; 
+      font-size: 16px;
+      font-weight:600;
+      line-height: 1.25;
+    }
+    
+    .stoichiometric-mode {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: #22c55e;
+      color: white;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    
+    .config-content {
+      flex:1;
+      padding: 16px 20px 12px;
+      overflow: hidden;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .config-footer {
+      padding: 12px 20px;
+      text-align:center;
+      border-top:1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    
+    /* Responsive Grid Layout */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      column-gap: 12px;
+      flex: 1;
+      min-height: 0;
+      align-content: start;
+    }
+    
+    /* Input Card Styling */
+    .input-card {
+      background: #0d1328;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: auto;
+    }
+    
+    .input-card:hover {
+      border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+    }
+    
+    .input-card .main-label {
+      color: #e8ecff;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: block;
+      line-height: 1.25;
+    }
+    
+    .input-card input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #0b1020;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 4px;
+      transition: border-color 0.2s ease;
+      height: 36px;
+    }
+    
+    .input-card input:focus {
+      outline: none;
+      border-color: #7aa2ff;
+      box-shadow: 0 0 0 1px rgba(122, 162, 255, 0.2);
+    }
+    
+    .input-card .sub-label {
+      color: #a8b0d9;
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: normal;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Bottom Note */
+    .bottom-note {
+      font-size: 11px;
+      color: #a8b0d9;
+      text-align: center;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-top: 12px;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+    
+    /* Logo */
+    .logo {
+      max-width:160px; 
+      height:auto; 
+      opacity:0.8;
+    }
+    
+    /* Compact Mode for Heights ≤ 840px */
+    @media (max-height: 840px) {
+      .config-header {
+        padding: 14px 20px 10px;
+      }
+      
+      .config-header h2 {
+        font-size: 15px;
+      }
+      
+      .stoichiometric-mode {
+        top: 14px;
+        padding: 2px 6px;
+        font-size: 10px;
+      }
+      
+      .config-content {
+        padding: 14px 20px 10px;
+      }
+      
+      .input-grid {
+        gap: 8px;
+        column-gap: 12px;
+      }
+      
+      .input-card {
+        padding: 8px;
+        border-radius: 8px;
+      }
+      
+      .input-card .main-label {
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      
+      .input-card input {
+        padding: 6px 8px;
+        height: 34px;
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+      
+      .input-card .sub-label {
+        font-size: 10px;
+        margin-top: 1px;
+      }
+      
+      .bottom-note {
+        padding: 6px;
+        margin-top: 10px;
+        font-size: 10px;
+      }
+      
+      .config-footer {
+        padding: 10px 20px;
+      }
+      
+      .logo {
+        max-width: 140px;
+      }
+    }
+    
+    /* Single Column for Heights ≤ 640px */
+    @media (max-height: 640px) {
+      .config-header {
+        padding: 12px 20px 8px;
+      }
+      
+      .config-header h2 {
+        font-size: 14px;
+      }
+      
+      .stoichiometric-mode {
+        top: 12px;
+        padding: 2px 5px;
+        font-size: 10px;
+      }
+      
+      .config-content {
+        padding: 12px 20px 8px;
+      }
+      
+      .input-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      
+      .input-card {
+        padding: 6px 8px;
+      }
+      
+      .input-card .main-label {
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+      
+      .input-card input {
+        height: 32px;
+        padding: 5px 7px;
+        font-size: 12px;
+        margin-bottom: 2px;
+      }
+      
+      .input-card .sub-label {
+        font-size: 10px;
+        margin-top: 1px;
+      }
+      
+      .bottom-note {
+        margin-top: 8px;
+        padding: 5px;
+        font-size: 10px;
+      }
+      
+      .config-footer {
+        padding: 8px 20px;
+      }
+      
+      .logo {
+        max-width: 120px;
+      }
+    }
+    
+    /* Schematic Panel - Flexible */
+    .schematic {
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+    }
+    .schematic-header {
+      padding:20px;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+    }
+    .schematic-header h2 {
+      margin:0; 
+      font-size:18px;
+      font-weight:600;
+    }
+    .schematic-content {
+      flex:1;
+      padding:16px;
+      overflow:hidden;
+    }
+    
+    /* Grid Background */
+    .wrap{
+      position:relative;
+      width:100%;
+      height:100%;
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      background:
+        linear-gradient(0deg,var(--grid-2) 1px,transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg,var(--grid-2) 1px,transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(0deg,var(--grid-1) 1px,transparent 1px) 0 0 / 120px 120px,
+        linear-gradient(90deg,var(--grid-1) 1px,transparent 1px) 0 0 / 120px 120px,
+        #0e1533;
+    }
+    
+    /* SVG */
+    svg#stage{width:100%;height:100%;display:block}
+    
+    /* Nodes */
+    .node rect{fill:#10183a;stroke:rgba(255,255,255,.14);stroke-width:1.3;rx:16;ry:16;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+    .node-title{font-weight:700;font-size:13px;fill:#e9ecff}
+    .node-sub{font-size:11px;fill:#aeb5e5}
+    
+    /* Edges */
+    .edge{fill:none;stroke:#7aa2ff;stroke-width:2.6;stroke-dasharray:5 6;opacity:.95}
+    .edge.water{stroke:#7aa2ff}
+    .edge.slurry{stroke:#4fe3a6}
+    .edge.gas{stroke:#b58cff}
+    
+    /* Toolbar */
+    .toolbar{
+      position:absolute;
+      left:14px;
+      bottom:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .btn{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#121a3a;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      box-shadow:var(--shadow);
+      font-size:16px;
+      font-weight:bold;
+    }
+    .btn:hover{background:#1a2345;}
+    .btn:active{transform:scale(0.95);}
+    
+    /* Minimap */
+    .minimap{
+      position:absolute;
+      right:14px;
+      bottom:14px;
+      background:#0f1630;
+      border:1px solid rgba(255,255,255,.08);
+      width:220px;
+      height:150px;
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .minimap svg{width:92%;height:86%;display:block}
+    .minimap-node{fill:rgba(255,255,255,.07);stroke:rgba(255,255,255,.18)}
+    .minimap-viewport{fill:rgba(122,162,255,.16);stroke:#9fb7ff;stroke-width:1}
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- Config Panel -->
+  <div class="config">
+    <div class="config-header">
+      <h2>System Configuration</h2>
+      <div class="stoichiometric-mode">Stoichiometric mode</div>
+    </div>
+    <div class="config-content">
+      <div class="input-grid">
+        <div class="input-card">
+          <label class="main-label">Microfeeder rate (g Al / min)</label>
+          <input id="alRate" type="number" value="10">
+          <div class="sub-label">Aluminum feed to Reactor 1</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Residence time in Reactor 1 (min)</label>
+          <input id="tau" type="number" value="3">
+          <div class="sub-label">Target ~3 minutes</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Reaction efficiency (0—1)</label>
+          <input id="eta" type="number" step="0.01" value="0.96">
+          <div class="sub-label">From lab validation</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Batch duration (min)</label>
+          <input id="batch" type="number" value="60">
+          <div class="sub-label">Sizing for Collector Reactor 2</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Water / Aluminum mass ratio</label>
+          <input id="wAl" type="number" step="0.1" value="5">
+          <div class="sub-label">Stoichiometric ≈ 2.00 g water per g Al</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Al(OH)₃ density (g/mL)</label>
+          <input id="rhoAlOH3" type="number" step="0.01" value="2.42">
+          <div class="sub-label">For slurry volume estimation</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">Al → Al(OH)₃ mass ratio</label>
+          <input id="kAlOH3" type="number" step="0.01" value="1.55">
+          <div class="sub-label">≈ 1.55 kg Al(OH)₃ / kg Al</div>
+        </div>
+        
+        <div class="input-card">
+          <label class="main-label">H₂ yield per g Al (L/g at STP)</label>
+          <input id="h2PerG" type="number" step="0.01" value="1.245">
+          <div class="sub-label">Theoretical ~1.245 L/g</div>
+        </div>
+      </div>
+      
+      <div class="bottom-note">
+        All values update live. Adjust as needed for safety factors and design margins.
+      </div>
+    </div>
+    <div class="config-footer">
+      <img class="logo" src="https://asrhur.com/5.png" alt="ASRHÜR Logo" />
+    </div>
+  </div>
+  
+  <!-- Schematic Panel -->
+  <div class="schematic">
+    <div class="schematic-header">
+      <h2>Interactive System Schematic & Sizing — ASRHÜR AWR</h2>
+    </div>
+    <div class="schematic-content">
+      <div class="wrap">
+        <svg id="stage">
+          <g id="layer"></g>
+        </svg>
+        <div class="toolbar">
+          <div class="btn" id="zoomIn">+</div>
+          <div class="btn" id="zoomOut">-</div>
+          <div class="btn" id="reset">⟲</div>
+        </div>
+        <div class="minimap">
+          <svg id="mini" viewBox="0 0 1600 1000">
+            <rect x="0" y="0" width="1600" height="1000" fill="#0c1431" stroke="rgba(255,255,255,.1)" />
+            <g id="miniNodes"></g>
+            <rect id="miniViewport" x="0" y="0" width="400" height="300" class="minimap-viewport" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const world={w:1600,h:1000};
+const ZMIN=0.3, ZMAX=3.0;
+let camera={x:0,y:0,k:1};
+let isDragging=false, isPanning=false;
+let dragData=null, panData=null;
+
+let nodes=[
+  {id:'hopper',x:60,y:320,w:300,h:140,title:'Powder Hopper & Microfeeder',color:'#53e6d6'},
+  {id:'water',x:60,y:140,w:280,h:140,title:'Water Tank & Dosing',color:'#7fd0ff'},
+  {id:'r1',x:420,y:220,w:340,h:160,title:'Reactor 1 (Mixing)',color:'#7ff2b6'},
+  {id:'r2',x:820,y:80,w:320,h:160,title:'Collector Reactor 2',color:'#c8b1ff'},
+  {id:'gas',x:1180,y:240,w:300,h:140,title:'Gas Handling',color:'#b2c2ff'},
+  {id:'outlet',x:1180,y:480,w:220,h:100,title:'H₂ Outlet',color:'#ffd37a'}
+];
+
+const edges=[
+  {id:'e1',from:['hopper','R'],to:['r1','L'],cls:'edge slurry'},
+  {id:'e2',from:['water','R'],to:['r1','L'],cls:'edge water'},
+  {id:'e3',from:['r1','R'],to:['r2','L'],cls:'edge slurry'},
+  {id:'e4',from:['r1','R'],to:['gas','L'],cls:'edge gas'},
+  {id:'e5',from:['r2','R'],to:['gas','L'],cls:'edge gas'},
+  {id:'e6',from:['gas','R'],to:['outlet','L'],cls:'edge gas'}
+];
+
+const svg=document.getElementById('stage');
+const layer=document.getElementById('layer');
+const mini=document.getElementById('mini');
+const miniNodes=document.getElementById('miniNodes');
+const miniViewport=document.getElementById('miniViewport');
+const NS='http://www.w3.org/2000/svg';
+
+const make=(tag,attrs={})=>{
+  const el=document.createElementNS(NS,tag);
+  for(const[k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+};
+
+function fmt(x,d=2){
+  return Number(x).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+}
+
+function compute(){
+  const alRate=parseFloat(document.getElementById('alRate').value||0);
+  const tau=parseFloat(document.getElementById('tau').value||3);
+  const eta=parseFloat(document.getElementById('eta').value||0.96);
+  const batch=parseFloat(document.getElementById('batch').value||60);
+  const wAl=parseFloat(document.getElementById('wAl').value||5);
+  const rhoAlOH3=parseFloat(document.getElementById('rhoAlOH3').value||2.42);
+  const kAlOH3=parseFloat(document.getElementById('kAlOH3').value||1.55);
+  const h2PerG=parseFloat(document.getElementById('h2PerG').value||1.245);
+  
+  const waterRate=wAl*alRate;
+  const h2Rate=h2PerG*eta*alRate;
+  const aloh3Rate=kAlOH3*alRate;
+  const aloh3Vol=aloh3Rate/rhoAlOH3;
+  const slurryRate=waterRate+aloh3Vol;
+  const r1Vol=slurryRate*tau;
+  const r2Vol=slurryRate*batch;
+  const alBatch=alRate*batch;
+  const waterBatch=waterRate*batch;
+  const h2Batch=h2Rate*batch;
+  const aloh3Batch=aloh3Rate*batch;
+  
+  const detail={alRate,tau,eta,batch,wAl,waterRate,h2Rate,aloh3Rate,aloh3Vol,slurryRate,r1Vol,r2Vol,alBatch,waterBatch,h2Batch,aloh3Batch};
+  updateNodeTexts(detail);
+}
+
+function getNode(id){
+  return nodes.find(n=>n.id===id);
+}
+
+function toWorldCoords(ev){
+  const rect = svg.getBoundingClientRect();
+  const x = (ev.clientX - rect.left - camera.x) / camera.k;
+  const y = (ev.clientY - rect.top - camera.y) / camera.k;
+  return {x, y};
+}
+
+function applyCamera(){
+  layer.setAttribute('transform',`translate(${camera.x},${camera.y}) scale(${camera.k})`);
+  updateMiniViewport();
+}
+
+function draw(){
+  layer.innerHTML='';
+  const edgeLayer=make('g');
+  const nodeLayer=make('g');
+  layer.append(edgeLayer,nodeLayer);
+  
+  // Create edges
+  edges.forEach((e)=>edgeLayer.appendChild(make('path',{id:e.id,class:e.cls})));
+  
+  // Create nodes
+  for(const n of nodes){
+    const g=make('g',{class:'node','data-id':n.id,transform:`translate(${n.x},${n.y})`});
+    
+    // Main rectangle
+    g.appendChild(make('rect',{width:n.w,height:n.h}));
+    
+    // Color indicator
+    g.appendChild(make('rect',{x:12,y:12,width:16,height:16,rx:4,fill:n.color,stroke:'rgba(255,255,255,0.3)','stroke-width':'1'}));
+    
+    // Title
+    const title=make('text',{x:36,y:26,class:'node-title'});
+    title.textContent=n.title;
+    g.appendChild(title);
+    
+    // Detail lines
+    for(let i=0;i<3;i++){
+      const t=make('text',{x:36,y:46+i*16,class:'node-sub'});
+      g.appendChild(t);
+    }
+    
+    // Connection ports
+    g.appendChild(make('circle',{r:8,cx:8,cy:n.h/2,fill:'rgba(255,255,255,0.1)',stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
+    g.appendChild(make('circle',{r:8,cx:n.w-8,cy:n.h/2,fill:'rgba(255,255,255,0.1)',stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
+    
+    nodeLayer.appendChild(g);
+  }
+  
+  updateEdges();
+  drawMinimap();
+}
+
+function updateEdges(){
+  function pathBetween(a,b){
+    const dx=Math.max(40,Math.abs(b.x-a.x)*0.5);
+    return `M ${a.x} ${a.y} C ${a.x+dx} ${a.y}, ${b.x-dx} ${b.y}, ${b.x} ${b.y}`;
+  }
+  
+  const ports={
+    L:n=>({x:n.x+8,y:n.y+n.h/2}),
+    R:n=>({x:n.x+n.w-8,y:n.y+n.h/2})
+  };
+  
+  edges.forEach((e)=>{
+    const n1=getNode(e.from[0]);
+    const n2=getNode(e.to[0]);
+    if(!n1||!n2) return;
+    
+    const p1=ports[e.from[1]](n1);
+    const p2=ports[e.to[1]](n2);
+    const path=document.getElementById(e.id);
+    if(path) path.setAttribute('d',pathBetween(p1,p2));
+  });
+}
+
+function updateNodeTexts(v){
+  const h2FlowLph = v.h2Rate * 60; // L/hour
+  const fuelCellPower = v.h2Rate / 12.4; // Direct calculation: kW = H₂ flow (L/min) / 12.4
+  
+  const map={
+    hopper:[`Al feed rate: ${fmt(v.alRate)} g/min`,`Batch aluminum: ${fmt(v.alBatch)} g`,`Feeds Reactor 1`],
+    water:[`Water/Al ratio: ${fmt(v.wAl)} g/g`,`Water flow: ${fmt(v.waterRate)} mL/min`,`Batch water: ${fmt(v.waterBatch)} mL`],
+    r1:[`Residence time: ${fmt(v.tau)} min`,`Estimated holdup: ${fmt(v.r1Vol)} mL`,`Slurry rate: ${fmt(v.slurryRate)} mL/min`],
+    r2:[`Batch duration: ${fmt(v.batch)} min`,`Required capacity: ${fmt(v.r2Vol)} mL`,`Al(OH)₃ produced: ${fmt(v.aloh3Batch)} g`],
+    gas:[`H₂ flow: ${fmt(v.h2Rate)} L/min`,`H₂ per batch: ${fmt(v.h2Batch)} L`,`Efficiency: ${fmt(v.eta*100,1)}%`],
+    outlet:[`H₂: ${fmt(v.h2Rate)} L/min (${fmt(h2FlowLph)} L/h)`,`PEM Fuel Cell: ${fmt(fuelCellPower,2)} kW`,`Ready for PSA/Usage`]
+  };
+  
+  nodes.forEach(n=>{
+    const g=layer.querySelector(`g.node[data-id="${n.id}"]`);
+    if(!g) return;
+    const texts=g.querySelectorAll('text.node-sub');
+    map[n.id].forEach((txt,i)=>{
+      if(texts[i]) texts[i].textContent=txt||'';
+    });
+  });
+}
+
+function drawMinimap(){
+  miniNodes.innerHTML='';
+  nodes.forEach(n=>{
+    const rect=make('rect',{
+      x:n.x,y:n.y,width:n.w,height:n.h,rx:8,
+      class:'minimap-node'
+    });
+    miniNodes.appendChild(rect);
+  });
+  updateMiniViewport();
+}
+
+function updateMiniViewport(){
+  if(!miniViewport||!svg) return;
+  const vw=svg.clientWidth||800;
+  const vh=svg.clientHeight||600;
+  const invK=1/camera.k;
+  const vx=(-camera.x)*invK;
+  const vy=(-camera.y)*invK;
+  const vwW=vw*invK;
+  const vhW=vh*invK;
+  
+  miniViewport.setAttribute('x',vx);
+  miniViewport.setAttribute('y',vy);
+  miniViewport.setAttribute('width',vwW);
+  miniViewport.setAttribute('height',vhW);
+}
+
+function fitToNodes(){
+  const pad=80;
+  const xs=nodes.flatMap(n=>[n.x,n.x+n.w]);
+  const ys=nodes.flatMap(n=>[n.y,n.y+n.h]);
+  const minx=Math.min(...xs)-pad;
+  const maxx=Math.max(...xs)+pad;
+  const miny=Math.min(...ys)-pad;
+  const maxy=Math.max(...ys)+pad;
+  const bw=maxx-minx;
+  const bh=maxy-miny;
+  const vw=svg.clientWidth||800;
+  const vh=svg.clientHeight||600;
+  const k=Math.min(vw/bw,vh/bh);
+  
+  camera.k=Math.max(ZMIN,Math.min(ZMAX,k*0.9));
+  const cx=minx+bw/2;
+  const cy=miny+bh/2;
+  camera.x=(vw/2)-camera.k*cx;
+  camera.y=(vh/2)-camera.k*cy;
+}
+
+// Event handlers
+function setupInteractions(){
+  // Mouse/touch events
+  svg.addEventListener('pointerdown',(ev)=>{
+    const nodeEl=ev.target.closest('g.node');
+    if(nodeEl){
+      // Node dragging
+      const nodeId=nodeEl.getAttribute('data-id');
+      const node=getNode(nodeId);
+      const worldPos=toWorldCoords(ev);
+      dragData={
+        nodeId,
+        startX:worldPos.x,
+        startY:worldPos.y,
+        nodeStartX:node.x,
+        nodeStartY:node.y
+      };
+      isDragging=true;
+      svg.setPointerCapture(ev.pointerId);
+    } else {
+      // Pan mode
+      panData={
+        startX:ev.clientX,
+        startY:ev.clientY,
+        cameraStartX:camera.x,
+        cameraStartY:camera.y
+      };
+      isPanning=true;
+      svg.setPointerCapture(ev.pointerId);
+    }
+  });
+
+  svg.addEventListener('pointermove',(ev)=>{
+    if(isDragging && dragData){
+      const worldPos=toWorldCoords(ev);
+      const node=getNode(dragData.nodeId);
+      node.x=dragData.nodeStartX+(worldPos.x-dragData.startX);
+      node.y=dragData.nodeStartY+(worldPos.y-dragData.startY);
+      
+      const nodeEl=layer.querySelector(`g.node[data-id="${dragData.nodeId}"]`);
+      nodeEl.setAttribute('transform',`translate(${node.x},${node.y})`);
+      updateEdges();
+      drawMinimap();
+    } else if(isPanning && panData){
+      camera.x=panData.cameraStartX+(ev.clientX-panData.startX);
+      camera.y=panData.cameraStartY+(ev.clientY-panData.startY);
+      applyCamera();
+    }
+  });
+
+  svg.addEventListener('pointerup',()=>{
+    isDragging=false;
+    isPanning=false;
+    dragData=null;
+    panData=null;
+  });
+
+  // Zoom with mouse wheel
+  svg.addEventListener('wheel',(ev)=>{
+    ev.preventDefault();
+    const worldPos=toWorldCoords(ev);
+    const scaleFactor=ev.deltaY>0?0.9:1.1;
+    const newK=Math.max(ZMIN,Math.min(ZMAX,camera.k*scaleFactor));
+    
+    camera.x=ev.clientX-worldPos.x*newK;
+    camera.y=ev.clientY-worldPos.y*newK;
+    camera.k=newK;
+    applyCamera();
+  },{passive:false});
+
+  // Toolbar buttons
+  document.getElementById('zoomIn').addEventListener('click',()=>{
+    camera.k=Math.min(ZMAX,camera.k*1.2);
+    applyCamera();
+  });
+
+  document.getElementById('zoomOut').addEventListener('click',()=>{
+    camera.k=Math.max(ZMIN,camera.k/1.2);
+    applyCamera();
+  });
+
+  document.getElementById('reset').addEventListener('click',()=>{
+    fitToNodes();
+    applyCamera();
+  });
+}
+
+// Input change handlers
+function setupInputHandlers(){
+  ['alRate','tau','eta','batch','wAl','rhoAlOH3','kAlOH3','h2PerG'].forEach(id=>{
+    const input=document.getElementById(id);
+    if(input){
+      input.addEventListener('input',compute);
+      input.addEventListener('change',compute);
+    }
+  });
+}
+
+// Initialize
+function init(){
+  draw();
+  compute();
+  setupInteractions();
+  setupInputHandlers();
+  fitToNodes();
+  applyCamera();
+}
+
+// Start when loaded
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
+      
